@@ -17,7 +17,6 @@ function App() {
     dice.map((die) => {
       if (die.isHeld === true) {
         arr.push(die.value);
-        console.log(arr);
       }
     });
 
