@@ -1,10 +1,44 @@
-import { React, useState } from "react";
+import { React, useState, useEffect } from "react";
 import Die from "./Components/Die";
 import "./App.css";
 import { nanoid } from "nanoid";
 
 function App() {
   const [dice, setDice] = useState(allNewDice());
+  const [tenzies, setTenzies] = useState(false);
+
+  useEffect(() => {
+    winTenzies();
+  }, [dice]);
+
+  function winTenzies() {
+    let arr = [];
+
+    dice.map((die) => {
+      if (die.isHeld === true) {
+        arr.push(die.value);
+        console.log(arr);
+      }
+    });
+
+    if (arr.length == 10) {
+      for (let i = 0; i < arr.length; i++) {
+        for (let x = i + 1; x < arr.length; x++) {
+          if (arr.indexOf(i) === arr.indexOf(x)) {
+            break;
+          } else {
+            continue;
+          }
+        }
+      }
+
+      setTenzies((oldTenzies) => !oldTenzies);
+
+      if (tenzies == true) {
+        console.log("you win tenzies!");
+      }
+    }
+  }
 
   function allNewDice() {
     const newDice = [];
