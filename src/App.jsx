@@ -2,10 +2,19 @@ import { React, useState, useEffect } from "react";
 import Die from "./Components/Die";
 import "./App.css";
 import { nanoid } from "nanoid";
+import Confetti from "react-confetti";
 
 function App() {
-  const [dice, setDice] = useState(allNewDice());
   const [tenzies, setTenzies] = useState(false);
+  const [dice, setDice] = useState(allNewDice());
+  const [counter, setCounter] = useState(0);
+
+  const bestRecord = () => {
+    const records = [];
+    records.push(counter);
+    localStorage.setItem("records", JSON.stringify(records));
+    JSON.parse(localStorage.getItem("records") || "[]");
+  };
 
   useEffect(() => {
     const allHeld = dice.every((die) => die.isHeld);
@@ -14,7 +23,6 @@ function App() {
 
     if (allHeld && allSame) {
       setTenzies(true);
-      console.log("You Got Tenzies!!!");
     }
   }, [dice]);
 
@@ -36,11 +44,19 @@ function App() {
   }
 
   function rollDice() {
-    setDice((oldDice) =>
-      oldDice.map((die) => {
-        return die.isHeld ? die : generateNewDie();
-      })
-    );
+    setCounter(counter + 1);
+
+    if (!tenzies) {
+      setDice((oldDice) =>
+        oldDice.map((die) => {
+          return die.isHeld ? die : generateNewDie();
+        })
+      );
+    } else {
+      setTenzies(false);
+      setDice(allNewDice());
+      setCounter(0);
+    }
   }
 
   function holdDice(id) {
@@ -60,16 +76,21 @@ function App() {
     />
   ));
 
+  const confetti = tenzies && <Confetti />;
+
   return (
     <main>
+      {confetti}
       <h1 className="title">Tenzies</h1>
       <p className="instruction">
         Roll until all dice are the same. Click each die to freeze it at its
         current value between rolls.
       </p>
+      <p>{counter}</p>
+      <p>best record: {bestRecord}</p>
       <div className="die-container">{diceElement}</div>
       <button className="roll-btn" onClick={rollDice}>
-        Roll
+        {tenzies ? "New Game" : "Roll"}{" "}
       </button>
     </main>
   );
