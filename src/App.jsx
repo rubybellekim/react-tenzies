@@ -5,27 +5,31 @@ import { nanoid } from "nanoid";
 import Confetti from "react-confetti";
 
 function App() {
+  //state properties
   const [tenzies, setTenzies] = useState(false);
   const [dice, setDice] = useState(allNewDice());
   const [counter, setCounter] = useState(0);
 
-  const bestRecord = () => {
-    const records = [];
-    records.push(counter);
-    localStorage.setItem("records", JSON.stringify(records));
-    JSON.parse(localStorage.getItem("records") || "[]");
-  };
+  //local storage properties
+  const prevRecord = localStorage.getItem("prevRecord");
+  const prevRecordInt = parseInt(prevRecord);
+
+  const bestRecord = localStorage.getItem("bestRecord");
+  const bestRecordInt = parseInt(bestRecord);
 
   useEffect(() => {
+    //check winning conditions
     const allHeld = dice.every((die) => die.isHeld);
     const firstValue = dice[0].value;
     const allSame = dice.every((die) => die.value === firstValue);
 
     if (allHeld && allSame) {
       setTenzies(true);
+      recordTrack();
     }
   }, [dice]);
 
+  //new game
   function allNewDice() {
     const newDice = [];
 
@@ -43,16 +47,28 @@ function App() {
     };
   }
 
+  //setting best record from local storage
+  function recordTrack() {
+    //if first game without any record, save it both in prevRecord and bestRecord.
+    if (prevRecord === null && bestRecord === null) {
+      localStorage.setItem("prevRecord", counter);
+      localStorage.setItem("bestRecord", counter);
+      //if better record than first game or bestRecord
+    } else if (prevRecordInt > counter || bestRecordInt > counter) {
+      localStorage.setItem("bestRecord", counter);
+    }
+  }
+
   function rollDice() {
     setCounter(counter + 1);
+    setDice((oldDice) =>
+      oldDice.map((die) => {
+        return die.isHeld ? die : generateNewDie();
+      })
+    );
 
-    if (!tenzies) {
-      setDice((oldDice) =>
-        oldDice.map((die) => {
-          return die.isHeld ? die : generateNewDie();
-        })
-      );
-    } else {
+    //when pressed 'new game' only after tenzies
+    if (tenzies) {
       setTenzies(false);
       setDice(allNewDice());
       setCounter(0);
@@ -86,11 +102,13 @@ function App() {
         Roll until all dice are the same. Click each die to freeze it at its
         current value between rolls.
       </p>
-      <p>{counter}</p>
-      <p>best record: {bestRecord}</p>
+      <p className="counter">{counter}</p>
+      <p className="bestRecord">
+        Best Record: {bestRecord === null ? prevRecord : bestRecord}
+      </p>
       <div className="die-container">{diceElement}</div>
       <button className="roll-btn" onClick={rollDice}>
-        {tenzies ? "New Game" : "Roll"}{" "}
+        {tenzies ? "New Game" : "Roll"}
       </button>
     </main>
   );
